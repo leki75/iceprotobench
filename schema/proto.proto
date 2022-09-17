@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "github.com/leki75/pertest/schema";
+option go_package = "github.com/leki75/iceprotobench/schema";
 
 message ProtoTrade {
   uint64 id = 1;
@@ -12,6 +12,10 @@ message ProtoTrade {
   bytes conditions = 7;
   int32 tape = 8;
   int64 receivedAt = 9;
+}
+
+message ProtoTrades {
+  repeated ProtoTrade trades = 1;
 }
 
 message ProtoQuote {
@@ -27,4 +31,8 @@ message ProtoQuote {
   bool nbbo = 10;
   int32 tape = 11;
   int64 receivedAt = 12;
+}
+
+message ProtoQutoes {
+  repeated ProtoQutoes quotes = 1;
 }

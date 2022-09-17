@@ -1,0 +1,44 @@
+karmem karmem @packed(true) @golang.package(`schema`);  
+  
+struct KarmemTrade table {
+    Id         uint64;
+    Timestamp  uint64;
+    Price      uint64;
+    Volume     uint32;
+    Conditions [4]byte;
+    Symbol     [11]byte;
+    Exchange   byte;
+    Tape       byte;
+    ReceivedAt uint64;
+}
+
+struct KarmemTradeData inline {
+    Data KarmemTrade;
+}
+
+struct KarmemTrades table {
+    Trades [<2000]KarmemTradeData;
+}
+
+struct KarmemQuote table {
+    Timestamp   uint64;
+    BidPrice    uint64;
+    AskPrice    uint64;
+    BidSize     uint32;
+    AskSize     uint32;
+    BidExchange byte;
+    AskExchange byte;
+    Condition   byte;
+    Nbbo        bool;
+    Symbol      [11]byte;
+    Tape        byte;
+    CreatedAt   uint64;
+}
+
+struct KarmemQuoteData inline {
+    Data KarmemQuote;
+}
+
+struct KarmemQuotes table {
+    Quotes [<2000]KarmemQuoteData;
+}

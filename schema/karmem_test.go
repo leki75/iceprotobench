@@ -6,11 +6,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	karmem "karmem.org/golang"
 )
 
-func TestRawTradeMarshalUnmarshal(t *testing.T) {
+func TestKarmemTradeMarshalUnmarshal(t *testing.T) {
 	now := time.Now()
-	trade := &RawTrade{
+	trade := &KarmemTrade{
 		Id:         1000,
 		Timestamp:  uint64(now.UnixNano()),
 		Price:      987654321,
@@ -22,18 +23,23 @@ func TestRawTradeMarshalUnmarshal(t *testing.T) {
 		ReceivedAt: uint64(now.Add(-1 * time.Second).UnixNano()),
 	}
 
-	b := trade.Marshal()
-	require.Equal(t, len(b), 53)
-
-	got := &RawTrade{}
-	err := got.Unmarshal(b)
+	// Marshal
+	writer := karmem.NewWriter(64)
+	_, err := trade.WriteAsRoot(writer)
 	require.NoError(t, err)
+	data := writer.Bytes()
+
+	// Unmarshal
+	reader := karmem.NewReader(data)
+	got := &KarmemTrade{}
+	got.ReadAsRoot(reader)
+
 	assert.EqualValues(t, got, trade)
 }
 
-func TestRawQuoteMarshalUnmarshal(t *testing.T) {
+func TestKarmemQuoteMarshalUnmarshal(t *testing.T) {
 	now := time.Now()
-	quote := &RawQuote{
+	quote := &KarmemQuote{
 		Timestamp:   uint64(now.UnixNano()),
 		BidPrice:    123456789,
 		AskPrice:    987654321,
@@ -48,11 +54,16 @@ func TestRawQuoteMarshalUnmarshal(t *testing.T) {
 		CreatedAt:   uint64(now.Add(-1 * time.Second).UnixNano()),
 	}
 
-	b := quote.Marshal()
-	require.Equal(t, len(b), 56)
-
-	got := &RawQuote{}
-	err := got.Unmarshal(b)
+	// Marshal
+	writer := karmem.NewWriter(64)
+	_, err := quote.WriteAsRoot(writer)
 	require.NoError(t, err)
+	data := writer.Bytes()
+
+	// Unmarshal
+	reader := karmem.NewReader(data)
+	got := &KarmemQuote{}
+	got.ReadAsRoot(reader)
+
 	assert.EqualValues(t, got, quote)
 }
