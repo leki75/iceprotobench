@@ -51,7 +51,7 @@ func TestKarmemQuoteMarshalUnmarshal(t *testing.T) {
 		Nbbo:        true,
 		Symbol:      *(*[11]byte)([]byte("AAPL       ")),
 		Tape:        'C',
-		CreatedAt:   uint64(now.Add(-1 * time.Second).UnixNano()),
+		ReceivedAt:  uint64(now.Add(-1 * time.Second).UnixNano()),
 	}
 
 	// Marshal

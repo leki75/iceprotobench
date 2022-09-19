@@ -3,7 +3,7 @@ karmem karmem @packed(true) @golang.package(`schema`);
 struct KarmemTrade table {
     Id         uint64;
     Timestamp  uint64;
-    Price      uint64;
+    Price      float64;
     Volume     uint32;
     Conditions [4]byte;
     Symbol     [11]byte;
@@ -22,8 +22,8 @@ struct KarmemTrades table {
 
 struct KarmemQuote table {
     Timestamp   uint64;
-    BidPrice    uint64;
-    AskPrice    uint64;
+    BidPrice    float64;
+    AskPrice    float64;
     BidSize     uint32;
     AskSize     uint32;
     BidExchange byte;
@@ -32,7 +32,7 @@ struct KarmemQuote table {
     Nbbo        bool;
     Symbol      [11]byte;
     Tape        byte;
-    CreatedAt   uint64;
+    ReceivedAt  uint64;
 }
 
 struct KarmemQuoteData inline {

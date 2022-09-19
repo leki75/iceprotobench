@@ -1,14 +1,14 @@
 //go:build proto
 // +build proto
 
-package schema
+package benchmark
 
 import (
-	"log"
 	"math"
 	"testing"
 	"time"
 
+	"github.com/leki75/iceprotobench/schema"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -18,7 +18,7 @@ var (
 )
 
 func BenchmarkTradeMarshal(b *testing.B) {
-	trade := &ProtoTrade{
+	trade := &schema.ProtoTrade{
 		Price:      math.MaxFloat64,
 		Volume:     math.MaxUint32,
 		Conditions: conditions,
@@ -29,13 +29,15 @@ func BenchmarkTradeMarshal(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
+		now := uint64(time.Now().UnixNano())
 		trade.Id = uint64(i)
-		trade.Timestamp = uint64(time.Now().UnixNano())
+		trade.Timestamp = now
 		trade.Exchange = 'A' + int32(i%26)
+		trade.ReceivedAt = int64(now)
 
 		data, err := proto.Marshal(trade)
 		if err != nil {
-			log.Fatal("trade marshal failed")
+			b.Fatal("trade marshal failed")
 		}
 		size += len(data)
 	}
@@ -43,53 +45,57 @@ func BenchmarkTradeMarshal(b *testing.B) {
 }
 
 func BenchmarkTradeUnmarshal(b *testing.B) {
-	trade := &ProtoTrade{
+	now := uint64(time.Now().UnixNano())
+	trade := &schema.ProtoTrade{
 		Id:         math.MaxUint64,
-		Timestamp:  uint64(time.Now().UnixNano()),
+		Timestamp:  now,
 		Price:      math.MaxFloat64,
 		Volume:     math.MaxUint32,
 		Conditions: conditions,
 		Symbol:     symbol,
 		Exchange:   '!',
 		Tape:       'A',
+		ReceivedAt: int64(now),
 	}
 	data, err := proto.Marshal(trade)
 	if err != nil {
-		log.Fatal("trade marshal failed")
+		b.Fatal("trade marshal failed")
 	}
-	result := &ProtoTrade{}
+	result := &schema.ProtoTrade{}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		if err = proto.Unmarshal(data, result); err != nil {
-			log.Fatal("trade unmarshal failed")
+			b.Fatal("trade unmarshal failed")
 		}
 	}
 }
 
 func BenchmarkQuoteMarshal(b *testing.B) {
-	quote := &ProtoQuote{
-		BidPrice:   math.MaxFloat64,
-		AskPrice:   math.MaxFloat64,
-		BidSize:    math.MaxUint32,
-		AskSize:    math.MaxUint32,
-		Conditions: conditions,
-		Symbol:     symbol,
-		Tape:       'C',
+	quote := &schema.ProtoQuote{
+		BidPrice:  math.MaxFloat64,
+		AskPrice:  math.MaxFloat64,
+		BidSize:   math.MaxUint32,
+		AskSize:   math.MaxUint32,
+		Condition: '@',
+		Symbol:    symbol,
+		Tape:      'C',
 	}
 	size := 0
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
+		now := uint64(time.Now().UnixNano())
 		exchange := 'A' + int32(i%26)
-		quote.Timestamp = uint64(time.Now().UnixNano())
+		quote.Timestamp = now
 		quote.BidExchange = exchange
 		quote.AskExchange = exchange
 		quote.Nbbo = (i % 2) == 0
+		quote.ReceivedAt = int64(now)
 
 		data, err := proto.Marshal(quote)
 		if err != nil {
-			log.Fatal("trade marshal failed")
+			b.Fatal("trade marshal failed")
 		}
 		size += len(data)
 	}
@@ -97,29 +103,31 @@ func BenchmarkQuoteMarshal(b *testing.B) {
 }
 
 func BenchmarkQuoteUnmarshal(b *testing.B) {
-	quote := &ProtoQuote{
-		Timestamp:   uint64(time.Now().UnixNano()),
+	now := uint64(time.Now().UnixNano())
+	quote := &schema.ProtoQuote{
+		Timestamp:   now,
 		BidPrice:    math.MaxFloat64,
 		AskPrice:    math.MaxFloat64,
 		BidSize:     math.MaxUint32,
 		AskSize:     math.MaxUint32,
 		BidExchange: '!',
 		AskExchange: '!',
-		Conditions:  conditions,
+		Condition:   '@',
 		Nbbo:        false,
 		Symbol:      symbol,
 		Tape:        'C',
+		ReceivedAt:  int64(now),
 	}
 	data, err := proto.Marshal(quote)
 	if err != nil {
-		log.Fatal("quote marshal failed")
+		b.Fatal("quote marshal failed")
 	}
-	result := &ProtoQuote{}
+	result := &schema.ProtoQuote{}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		if err = proto.Unmarshal(data, result); err != nil {
-			log.Fatal("trade unmarshal failed")
+			b.Fatal("quote unmarshal failed")
 		}
 	}
 }

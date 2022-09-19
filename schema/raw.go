@@ -3,6 +3,7 @@ package schema
 import (
 	"encoding/binary"
 	"errors"
+	"math"
 )
 
 // RawTrade
@@ -24,7 +25,7 @@ import (
 type RawTrade struct {
 	Id         uint64   //  8
 	Timestamp  uint64   // 16
-	Price      uint64   // 24
+	Price      float64  // 24
 	Volume     uint32   // 28
 	Conditions [4]byte  // 32
 	Symbol     [11]byte // 43
@@ -36,11 +37,11 @@ type RawTrade struct {
 func (t *RawTrade) Marshal() []byte {
 	b := make([]byte, 53)
 
-	binary.LittleEndian.PutUint64(b[45:], t.ReceivedAt) // go bounds check elimination
-	binary.LittleEndian.PutUint64(b[0:], t.Id)
-	binary.LittleEndian.PutUint64(b[8:], t.Timestamp)
-	binary.LittleEndian.PutUint64(b[16:], t.Price)
-	binary.LittleEndian.PutUint32(b[24:], t.Volume)
+	binary.BigEndian.PutUint64(b[45:], t.ReceivedAt) // go bounds check elimination
+	binary.BigEndian.PutUint64(b[0:], t.Id)
+	binary.BigEndian.PutUint64(b[8:], t.Timestamp)
+	binary.BigEndian.PutUint64(b[16:], math.Float64bits(t.Price))
+	binary.BigEndian.PutUint32(b[24:], t.Volume)
 	for i := 0; i < 4; i++ {
 		b[i+28] = t.Conditions[i]
 	}
@@ -58,11 +59,11 @@ func (t *RawTrade) Unmarshal(b []byte) error {
 		return errors.New("invalid trade length")
 	}
 
-	t.ReceivedAt = binary.LittleEndian.Uint64(b[45:]) // go bounds check elimination
-	t.Id = binary.LittleEndian.Uint64(b[0:])
-	t.Timestamp = binary.LittleEndian.Uint64(b[8:])
-	t.Price = binary.LittleEndian.Uint64(b[16:])
-	t.Volume = binary.LittleEndian.Uint32(b[24:])
+	t.ReceivedAt = binary.BigEndian.Uint64(b[45:]) // go bounds check elimination
+	t.Id = binary.BigEndian.Uint64(b[0:])
+	t.Timestamp = binary.BigEndian.Uint64(b[8:])
+	t.Price = math.Float64frombits(binary.BigEndian.Uint64(b[16:]))
+	t.Volume = binary.BigEndian.Uint32(b[24:])
 	t.Conditions = *(*[4]byte)(b[28:])
 	t.Symbol = *(*[11]byte)(b[32:])
 	t.Exchange = b[43]
@@ -89,8 +90,8 @@ func (t *RawTrade) Unmarshal(b []byte) error {
 
 type RawQuote struct {
 	Timestamp   uint64   //  8
-	BidPrice    uint64   // 16
-	AskPrice    uint64   // 24
+	BidPrice    float64  // 16
+	AskPrice    float64  // 24
 	BidSize     uint32   // 28
 	AskSize     uint32   // 32
 	BidExchange byte     // 33
@@ -99,7 +100,7 @@ type RawQuote struct {
 	Nbbo        bool     // 36
 	Symbol      [11]byte // 47
 	Tape        byte     // 48 - not in the original Quote message
-	CreatedAt   uint64   // ?? - not in the original Quote message
+	ReceivedAt  uint64   // ?? - not in the original Quote message
 }
 
 func (q *RawQuote) Marshal() []byte {
@@ -110,12 +111,12 @@ func (q *RawQuote) Marshal() []byte {
 		nbbo = 1
 	}
 
-	binary.LittleEndian.PutUint64(b[48:], q.CreatedAt) // go bounds check elimination
-	binary.LittleEndian.PutUint64(b[0:], q.Timestamp)
-	binary.LittleEndian.PutUint64(b[8:], q.BidPrice)
-	binary.LittleEndian.PutUint64(b[16:], q.AskPrice)
-	binary.LittleEndian.PutUint32(b[24:], q.BidSize)
-	binary.LittleEndian.PutUint32(b[28:], q.AskSize)
+	binary.BigEndian.PutUint64(b[48:], q.ReceivedAt) // go bounds check elimination
+	binary.BigEndian.PutUint64(b[0:], q.Timestamp)
+	binary.BigEndian.PutUint64(b[8:], math.Float64bits(q.BidPrice))
+	binary.BigEndian.PutUint64(b[16:], math.Float64bits(q.AskPrice))
+	binary.BigEndian.PutUint32(b[24:], q.BidSize)
+	binary.BigEndian.PutUint32(b[28:], q.AskSize)
 	b[32] = q.BidExchange
 	b[33] = q.AskExchange
 	b[34] = q.Condition
@@ -133,12 +134,12 @@ func (q *RawQuote) Unmarshal(b []byte) error {
 		return errors.New("invalid quote length")
 	}
 
-	q.CreatedAt = binary.LittleEndian.Uint64(b[48:]) // go bounds check elimination
-	q.Timestamp = binary.LittleEndian.Uint64(b[0:])
-	q.BidPrice = binary.LittleEndian.Uint64(b[8:])
-	q.AskPrice = binary.LittleEndian.Uint64(b[16:])
-	q.BidSize = binary.LittleEndian.Uint32(b[24:])
-	q.AskSize = binary.LittleEndian.Uint32(b[28:])
+	q.ReceivedAt = binary.BigEndian.Uint64(b[48:]) // go bounds check elimination
+	q.Timestamp = binary.BigEndian.Uint64(b[0:])
+	q.BidPrice = math.Float64frombits(binary.BigEndian.Uint64(b[8:]))
+	q.AskPrice = math.Float64frombits(binary.BigEndian.Uint64(b[16:]))
+	q.BidSize = binary.BigEndian.Uint32(b[24:])
+	q.AskSize = binary.BigEndian.Uint32(b[28:])
 	q.BidExchange = b[32]
 	q.AskExchange = b[33]
 	q.Condition = b[34]

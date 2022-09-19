@@ -1,23 +1,28 @@
 //go:build karmem
 // +build karmem
 
-package schema
+package benchmark
 
 import (
-	"log"
 	"math"
 	"testing"
 	"time"
 
+	"github.com/leki75/iceprotobench/schema"
 	karmem "karmem.org/golang"
 )
 
+var (
+	conditions = [4]byte{'A', 'B', 'C', 'D'}
+	symbol     = *(*[11]byte)([]byte("12345678901"))
+)
+
 func BenchmarkTradeMarshal(b *testing.B) {
-	trade := &KarmemTrade{
-		Price:      math.MaxUint64,
+	trade := &schema.KarmemTrade{
+		Price:      math.MaxFloat64,
 		Volume:     math.MaxUint32,
-		Conditions: [4]byte{'A', 'B', 'C', 'D'},
-		Symbol:     *(*[11]byte)([]byte("12345678901")),
+		Conditions: conditions,
+		Symbol:     symbol,
 		Tape:       'A',
 	}
 	size := 0
@@ -32,7 +37,7 @@ func BenchmarkTradeMarshal(b *testing.B) {
 
 		writer := karmem.NewWriter(64)
 		if _, err := trade.WriteAsRoot(writer); err != nil {
-			log.Fatal("trade marshal failed")
+			b.Fatal("trade marshal failed")
 		}
 		data := writer.Bytes()
 		size += len(data)
@@ -42,13 +47,13 @@ func BenchmarkTradeMarshal(b *testing.B) {
 
 func BenchmarkTradeUnmarshal(b *testing.B) {
 	now := uint64(time.Now().UnixNano())
-	trade := &KarmemTrade{
+	trade := &schema.KarmemTrade{
 		Id:         math.MaxUint64,
 		Timestamp:  now,
-		Price:      math.MaxUint64,
+		Price:      math.MaxFloat64,
 		Volume:     math.MaxUint32,
-		Conditions: [4]byte{'A', 'B', 'C', 'D'},
-		Symbol:     *(*[11]byte)([]byte("12345678901")),
+		Conditions: conditions,
+		Symbol:     symbol,
 		Exchange:   '!',
 		Tape:       'A',
 		ReceivedAt: now,
@@ -56,7 +61,7 @@ func BenchmarkTradeUnmarshal(b *testing.B) {
 	// Marshal
 	writer := karmem.NewWriter(64)
 	if _, err := trade.WriteAsRoot(writer); err != nil {
-		log.Fatal("trade marshal failed")
+		b.Fatal("trade marshal failed")
 	}
 	data := writer.Bytes()
 
@@ -64,19 +69,19 @@ func BenchmarkTradeUnmarshal(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Unmarshal
 		reader := karmem.NewReader(data)
-		trade := &KarmemTrade{}
+		trade := &schema.KarmemTrade{}
 		trade.ReadAsRoot(reader)
 	}
 }
 
 func BenchmarkQuoteMarshal(b *testing.B) {
-	quote := &KarmemQuote{
-		BidPrice:  math.MaxUint64,
-		AskPrice:  math.MaxUint64,
+	quote := &schema.KarmemQuote{
+		BidPrice:  math.MaxFloat64,
+		AskPrice:  math.MaxFloat64,
 		BidSize:   math.MaxUint32,
 		AskSize:   math.MaxUint32,
 		Condition: '@',
-		Symbol:    *(*[11]byte)([]byte("12345678901")),
+		Symbol:    symbol,
 		Tape:      'C',
 	}
 	size := 0
@@ -89,10 +94,10 @@ func BenchmarkQuoteMarshal(b *testing.B) {
 		quote.BidExchange = exchange
 		quote.AskExchange = exchange
 		quote.Nbbo = (i % 2) == 0
-		quote.CreatedAt = now
+		quote.ReceivedAt = now
 		writer := karmem.NewWriter(64)
 		if _, err := quote.WriteAsRoot(writer); err != nil {
-			log.Fatal("quote marshal failed")
+			b.Fatal("quote marshal failed")
 		}
 		data := writer.Bytes()
 		size += len(data)
@@ -102,24 +107,24 @@ func BenchmarkQuoteMarshal(b *testing.B) {
 
 func BenchmarkQuoteUnmarshal(b *testing.B) {
 	now := uint64(time.Now().UnixNano())
-	quote := &KarmemQuote{
+	quote := &schema.KarmemQuote{
 		Timestamp:   now,
-		BidPrice:    math.MaxUint64,
-		AskPrice:    math.MaxUint64,
+		BidPrice:    math.MaxFloat64,
+		AskPrice:    math.MaxFloat64,
 		BidSize:     math.MaxUint32,
 		AskSize:     math.MaxUint32,
 		BidExchange: '!',
 		AskExchange: '!',
 		Condition:   '@',
 		Nbbo:        false,
-		Symbol:      *(*[11]byte)([]byte("12345678901")),
+		Symbol:      symbol,
 		Tape:        'C',
-		CreatedAt:   now,
+		ReceivedAt:  now,
 	}
 	// Marshal
 	writer := karmem.NewWriter(64)
 	if _, err := quote.WriteAsRoot(writer); err != nil {
-		log.Fatal("trade marshal failed")
+		b.Fatal("quote marshal failed")
 	}
 	data := writer.Bytes()
 
@@ -127,7 +132,7 @@ func BenchmarkQuoteUnmarshal(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Unmarshal
 		reader := karmem.NewReader(data)
-		quote := &KarmemQuote{}
+		quote := &schema.KarmemQuote{}
 		quote.ReadAsRoot(reader)
 	}
 }
