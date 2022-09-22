@@ -16,10 +16,10 @@ test:
 .PHONY: bench
 bench: generate
 	mkdir -p result
-	go test -tags proto   -bench=. -benchmem -count=5 github.com/leki75/iceprotobench/benchmark > result/proto.out
-	go test -tags protovt -bench=. -benchmem -count=5 github.com/leki75/iceprotobench/benchmark > result/protovt.out
-	go test -tags karmem  -bench=. -benchmem -count=5 github.com/leki75/iceprotobench/benchmark > result/karmem.out
-	go test -tags raw     -bench=. -benchmem -count=5 github.com/leki75/iceprotobench/benchmark > result/raw.out
+	go test -tags proto   -bench=. -benchmem -count=5 github.com/leki75/iceprotobench/benchmark | tee result/proto.out
+	go test -tags protovt -bench=. -benchmem -count=5 github.com/leki75/iceprotobench/benchmark | tee result/protovt.out
+	go test -tags karmem  -bench=. -benchmem -count=5 github.com/leki75/iceprotobench/benchmark | tee result/karmem.out
+	go test -tags raw     -bench=. -benchmem -count=5 github.com/leki75/iceprotobench/benchmark | tee result/raw.out
 
 	go install golang.org/x/perf/cmd/benchstat
 	benchstat result/proto.out result/protovt.out result/karmem.out result/raw.out

@@ -42,12 +42,8 @@ func (t *RawTrade) Marshal() []byte {
 	binary.BigEndian.PutUint64(b[8:], t.Timestamp)
 	binary.BigEndian.PutUint64(b[16:], math.Float64bits(t.Price))
 	binary.BigEndian.PutUint32(b[24:], t.Volume)
-	for i := 0; i < 4; i++ {
-		b[i+28] = t.Conditions[i]
-	}
-	for i := 0; i < 11; i++ {
-		b[i+32] = t.Symbol[i]
-	}
+	copy(b[28:], t.Conditions[:])
+	copy(b[32:], t.Symbol[:])
 	b[43] = t.Exchange
 	b[44] = t.Tape
 
@@ -106,11 +102,6 @@ type RawQuote struct {
 func (q *RawQuote) Marshal() []byte {
 	b := make([]byte, 56)
 
-	nbbo := byte(0)
-	if q.Nbbo {
-		nbbo = 1
-	}
-
 	binary.BigEndian.PutUint64(b[48:], q.ReceivedAt) // go bounds check elimination
 	binary.BigEndian.PutUint64(b[0:], q.Timestamp)
 	binary.BigEndian.PutUint64(b[8:], math.Float64bits(q.BidPrice))
@@ -120,10 +111,12 @@ func (q *RawQuote) Marshal() []byte {
 	b[32] = q.BidExchange
 	b[33] = q.AskExchange
 	b[34] = q.Condition
-	b[35] = nbbo
-	for i := 0; i < 11; i++ {
-		b[i+36] = q.Symbol[i]
+	if q.Nbbo {
+		b[35] = 1
+	} else {
+		b[35] = 0
 	}
+	copy(b[36:], q.Symbol[:])
 	b[47] = q.Tape
 
 	return b
