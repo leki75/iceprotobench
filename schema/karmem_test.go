@@ -47,7 +47,7 @@ func TestKarmemQuoteMarshalUnmarshal(t *testing.T) {
 		AskSize:     654321,
 		BidExchange: 'B',
 		AskExchange: 'A',
-		Condition:   '@',
+		Conditions:  [2]byte{'@'},
 		Nbbo:        true,
 		Symbol:      *(*[11]byte)([]byte("AAPL       ")),
 		Tape:        'C',

@@ -28,7 +28,7 @@ struct KarmemQuote table {
     AskSize     uint32;
     BidExchange byte;
     AskExchange byte;
-    Condition   byte;
+    Conditions  [2]byte;
     Nbbo        bool;
     Symbol      [11]byte;
     Tape        byte;

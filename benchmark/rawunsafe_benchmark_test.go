@@ -1,69 +1,57 @@
-//go:build protovt
-// +build protovt
+//go:build rawunsafe
+// +build rawunsafe
 
 package benchmark
 
 import (
 	"testing"
 
-	"github.com/leki75/iceprotobench/schema"
+	"github.com/leki75/iceprotobench/schema/raw"
 )
 
 func BenchmarkTradeMarshal(b *testing.B) {
-	trade := createProtoTrade()
+	trade := createRawTrade()
 	size := 0
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		trade.Timestamp = uint64(i)
-		data, err := trade.MarshalVT()
-		if err != nil {
-			b.Fatal("trade marshal failed")
-		}
+		data := trade.MarshalUnsafe()
 		size += len(data)
 	}
 	b.ReportMetric(float64(size)/float64(b.N), "B/obj")
 }
 
 func BenchmarkTradeUnmarshal(b *testing.B) {
-	trade := createProtoTrade()
-	data, err := trade.MarshalVT()
-	if err != nil {
-		b.Fatal("trade marshal failed")
-	}
-	result := &schema.ProtoTrade{}
+	trade := createRawTrade()
+	data := trade.Marshal()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if err = result.UnmarshalVT(data); err != nil {
+		result := &raw.Trade{}
+		if err := result.UnmarshalUnsafe(data); err != nil {
 			b.Fatal("trade unmarshal failed")
 		}
 	}
 }
 
 func BenchmarkQuoteMarshal(b *testing.B) {
-	quote := createProtoQuote()
+	quote := createRawQuote()
 	size := 0
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		quote.Timestamp = uint64(i)
-		data, err := quote.MarshalVT()
-		if err != nil {
-			b.Fatal("quote marshal failed")
-		}
+		data := quote.MarshalUnsafe()
 		size += len(data)
 	}
 	b.ReportMetric(float64(size)/float64(b.N), "B/obj")
 }
 
 func BenchmarkQuoteUnmarshal(b *testing.B) {
-	quote := createProtoQuote()
-	data, err := quote.MarshalVT()
-	if err != nil {
-		b.Fatal("quote marshal failed")
-	}
-	result := &schema.ProtoQuote{}
+	quote := createRawQuote()
+	data := quote.Marshal()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if err = result.UnmarshalVT(data); err != nil {
+		result := &raw.Quote{}
+		if err := result.UnmarshalUnsafe(data); err != nil {
 			b.Fatal("quote unmarshal failed")
 		}
 	}

@@ -16,13 +16,14 @@ test:
 .PHONY: bench
 bench: generate
 	mkdir -p result
-	go test -tags proto   -bench=. -benchmem -count=5 github.com/leki75/iceprotobench/benchmark | tee result/proto.out
-	go test -tags protovt -bench=. -benchmem -count=5 github.com/leki75/iceprotobench/benchmark | tee result/protovt.out
-	go test -tags karmem  -bench=. -benchmem -count=5 github.com/leki75/iceprotobench/benchmark | tee result/karmem.out
-	go test -tags raw     -bench=. -benchmem -count=5 github.com/leki75/iceprotobench/benchmark | tee result/raw.out
+	go test -tags proto     -bench=. -benchmem -count=5 github.com/leki75/iceprotobench/benchmark | tee result/proto.out
+	go test -tags protovt   -bench=. -benchmem -count=5 github.com/leki75/iceprotobench/benchmark | tee result/protovt.out
+	go test -tags karmem    -bench=. -benchmem -count=5 github.com/leki75/iceprotobench/benchmark | tee result/karmem.out
+	go test -tags raw       -bench=. -benchmem -count=5 github.com/leki75/iceprotobench/benchmark | tee result/raw.out
+	go test -tags rawunsafe -bench=. -benchmem -count=5 github.com/leki75/iceprotobench/benchmark | tee result/rawunsafe.out
 
 	go install golang.org/x/perf/cmd/benchstat
-	benchstat result/proto.out result/protovt.out result/karmem.out result/raw.out
+	benchstat result/proto.out result/protovt.out result/karmem.out result/raw.out result/rawunsafe.out
 
 schema/proto.pb.go: schema/proto.proto
 	go install google.golang.org/protobuf/cmd/protoc-gen-go
